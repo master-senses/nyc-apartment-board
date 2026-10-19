@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NYC Housing Board · near Madison Square Park</title>
+<meta name="description" content="Shortlist of NYC rooms and short-term stays within ~20 min of Madison Square Park. Snapshot Oct 19, 2026.">
+<style>
+:root{
+  --bg:#f6f5f2;--card:#fff;--ink:#1d1d1f;--muted:#6b6b72;--line:#e6e4df;
+  --accent:#2f5bd3;--accent-soft:#e8eefc;--good:#167c4a;--good-soft:#e4f4ec;
+  --warn:#9a6200;--warn-soft:#fdf2dc;--bad:#a8322d;--bad-soft:#fbe7e5;
+  --radius:14px;--shadow:0 1px 2px rgba(0,0,0,.04),0 4px 14px rgba(0,0,0,.05);
+  --panel-w:440px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#121214;--card:#1c1c1f;--ink:#f2f2f4;--muted:#a1a1aa;--line:#2c2c31;
+  --accent:#7c9bff;--accent-soft:#1f2740;--good:#5fd39a;--good-soft:#14281e;
+  --warn:#f0b75a;--warn-soft:#2c2414;--bad:#ff8a80;--bad-soft:#2e1817;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.35);}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);
+  border-bottom:1px solid var(--line)}
+.wrap{max-width:1600px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 0 6px;flex-wrap:wrap}
+h1{font-size:19px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px}
+.filters{display:flex;gap:8px;padding:6px 0 12px;overflow-x:auto;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;user-select:none;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:focus-visible,.card:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select.chip{appearance:none;-webkit-appearance:none;padding-right:26px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+main.wrap{padding-top:14px;padding-bottom:40px}
+.notes{display:grid;gap:10px;margin-bottom:16px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--muted)}
+.note b{color:var(--ink)}
+.board{display:grid;gap:18px;grid-template-columns:1fr}
+.col h2{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 4px;display:flex;justify-content:space-between}
+.col .colsub{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.cards{display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:14px;cursor:pointer;transition:transform .12s ease,border-color .12s ease;text-align:left;width:100%;color:inherit;font:inherit}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.card:active{transform:scale(.995)}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow)}
+.row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.title{font-weight:600;font-size:15px;line-height:1.3}
+.price{font-weight:700;font-size:16px;white-space:nowrap}
+.price small{font-weight:500;color:var(--muted);font-size:12px}
+.meta{color:var(--muted);font-size:13px;margin-top:3px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+.tag.good{background:var(--good-soft);color:var(--good)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.one{margin-top:9px;font-size:13.5px}
+.star{color:#e0a400}
+.empty{color:var(--muted);font-size:13px;padding:10px 2px}
+/* details: bottom sheet on phones */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .18s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.panel{position:fixed;z-index:50;background:var(--card);color:var(--ink);box-shadow:0 -6px 30px rgba(0,0,0,.18);
+  left:0;right:0;bottom:0;max-height:88vh;border-radius:18px 18px 0 0;transform:translateY(105%);
+  transition:transform .22s ease;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+.panel.on{transform:none}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px 10px;border-bottom:1px solid var(--line)}
+.ph h3{margin:0;font-size:17px;line-height:1.3}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:8px auto 0}
+.x{border:0;background:var(--bg);color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;flex:0 0 auto}
+.pb{overflow:auto;padding:14px 18px 22px}
+dl{display:grid;grid-template-columns:130px 1fr;gap:8px 12px;margin:0 0 14px;font-size:14px}
+dt{color:var(--muted)}dd{margin:0}
+.pb p{margin:0 0 10px;font-size:14px}
+.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600;font-size:14px;margin:4px 6px 4px 0}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+footer{color:var(--muted);font-size:12.5px;padding:10px 0 30px}
+footer section{margin-bottom:14px}
+footer h4{margin:0 0 6px;color:var(--ink);font-size:13px}
+footer ul{margin:0;padding-left:18px}
+/* tablet */
+@media (min-width:760px){
+  .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .notes{grid-template-columns:repeat(3,1fr)}
+}
+/* laptop: three side-by-side columns + right side panel */
+@media (min-width:1180px){
+  .wrap{padding:0 28px}
+  .board{grid-template-columns:repeat(3,minmax(300px,1fr));gap:22px;align-items:start}
+  .col{position:relative}
+  .cards{gap:14px}
+  .card{padding:16px}
+  body.panel-open main.wrap,body.panel-open header .wrap{padding-right:calc(var(--panel-w) + 40px)}
+  body.panel-open .board{grid-template-columns:repeat(2,minmax(260px,1fr))}
+  .scrim{display:none}
+  .panel{top:0;bottom:0;left:auto;right:0;width:var(--panel-w);max-height:none;border-radius:0;
+    border-left:1px solid var(--line);box-shadow:-8px 0 30px rgba(0,0,0,.08);transform:translateX(105%)}
+  .panel.on{transform:none}
+  .grab{display:none}
+  .ph{padding:20px 22px 14px}
+  .pb{padding:16px 22px 28px}
+}
+@media (min-width:1180px) and (max-width:1399px){:root{--panel-w:390px}}
+@media (min-width:1560px){body.panel-open .board{grid-template-columns:repeat(3,minmax(260px,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>NYC Housing Board <span class="sub">· ≤20 min to Madison Square Park (E 26th St)</span></h1>
+      <span class="sub">Snapshot Mon Oct 19, 2026 · prices &amp; dates as listed · commute times are estimates</span>
+    </div>
+    <div class="filters" role="toolbar" aria-label="Filters">
+      <button class="chip" data-f="bath" aria-pressed="false">Own bathroom</button>
+      <button class="chip" data-f="wd" aria-pressed="false">W/D in unit/apt</button>
+      <button class="chip" data-f="furn" aria-pressed="false">Furnished</button>
+      <button class="chip" data-f="walk" aria-pressed="false">Walkable (≤15 min)</button>
+      <button class="chip" data-f="male" aria-pressed="false">All-male household</button>
+      <select class="chip" id="max" aria-label="Max price">
+        <option value="99999">Any price</option>
+        <option value="3000">≤ $3,000</option>
+        <option value="2500">≤ $2,500</option>
+        <option value="3500" selected>≤ $3,500</option>
+      </select>
+      <select class="chip" id="sort" aria-label="Sort">
+        <option value="pick">Sort: best fit</option>
+        <option value="price">Sort: price</option>
+        <option value="commute">Sort: commute</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="notes">
+    <div class="note"><b>Under-30-day rule.</b> NYC bars renting a whole apartment for &lt;30 consecutive days (Local Law 18). Book temporary stays as 30+ day monthly agreements. <a href="https://www.nyc.gov/site/specialenforcement/hosting-STRs/what-is-local-law-18.page" target="_blank" rel="noopener">nyc.gov</a></div>
+    <div class="note"><b>FARE Act.</b> If a broker represents the landlord, the tenant doesn't pay their fee, and every fee must be disclosed in writing. Several posters below are brokers or LLCs. <a href="https://www.nyc.gov/site/dca/about/FAQ-Broker-Fees.page" target="_blank" rel="noopener">nyc.gov</a></div>
+    <div class="note"><b>Remote-renting safety.</b> Insist on a live video tour that starts on the street. Never pay by Zelle, wire, crypto, or gift card before seeing the place. Ask for written landlord approval on any sublet.</div>
+  </div>
+  <div class="board" id="board"></div>
+
+  <footer>
+    <section>
+      <h4>Average room in a share (SpareRoom Q3 2026 index)</h4>
+      Murray Hill $2,189 · Kips Bay $2,447 · Gramercy $2,681 · Chelsea $2,652 · Midtown $2,032 · Midtown East $2,246 · East Village $2,229 · Hell's Kitchen $2,475 · UES $2,240 · LIC $1,965 · Astoria $1,404 · Williamsburg $1,976.
+      <a href="https://www.spareroom.com/content/information-for-roommates/average-rents-nyc/" target="_blank" rel="noopener">Source</a>
+    </section>
+    <section>
+      <h4>Keep searching</h4>
+      <ul>
+        <li>SpareRoom: <a href="https://www.spareroom.com/rooms-for-rent/manhattan/murray_hill" target="_blank" rel="noopener">Murray Hill</a> · <a href="https://www.spareroom.com/rooms-for-rent/manhattan/kips_bay" target="_blank" rel="noopener">Kips Bay</a> · <a href="https://www.spareroom.com/rooms-for-rent/manhattan/chelsea" target="_blank" rel="noopener">Chelsea</a></li>
+        <li>Leasebreak: <a href="https://www.leasebreak.com/short-term-rentals/Manhattan/Murray-Hill-Kips-Bay" target="_blank" rel="noopener">Murray Hill/Kips Bay</a> · <a href="https://www.leasebreak.com/short-term-rentals/Manhattan/Gramercy-Park" target="_blank" rel="noopener">Gramercy</a></li>
+        <li>StreetEasy (blocks automated checks, links untested): <a href="https://streeteasy.com/for-rent/murray-hill/price:-3500" target="_blank" rel="noopener">Murray Hill</a> · <a href="https://streeteasy.com/for-rent/kips-bay/price:-3500" target="_blank" rel="noopener">Kips Bay</a> · <a href="https://streeteasy.com/for-rent/gramercy-park/price:-3500" target="_blank" rel="noopener">Gramercy</a> · <a href="https://streeteasy.com/for-rent/flatiron/price:-3500" target="_blank" rel="noopener">Flatiron</a> · <a href="https://streeteasy.com/for-rent/chelsea/price:-3500" target="_blank" rel="noopener">Chelsea</a></li>
+        <li><a href="https://newyork.craigslist.org/search/mnh/sub?max_price=3500" target="_blank" rel="noopener">Craigslist sublets</a> · <a href="https://www.listingsproject.com/real-estate/new-york-city/sublets" target="_blank" rel="noopener">Listings Project</a> · <a href="https://junehomes.com/residences/new-york-city-ny" target="_blank" rel="noopener">June Homes</a> · <a href="https://outpost.me/new-york-city/private_bath" target="_blank" rel="noopener">Outpost (private bath)</a> · <a href="https://www.roomrs.com/room-rentals" target="_blank" rel="noopener">Roomrs</a></li>
+      </ul>
+    </section>
+    <section>Listings change daily. Recheck the listing before you contact anyone or pay. This board isn't affiliated with any listed site.</section>
+  </footer>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="false" aria-labelledby="ptitle" aria-hidden="true">
+  <div class="grab"></div>
+  <div class="ph"><h3 id="ptitle"></h3><button class="x" id="close" aria-label="Close details">×</button></div>
+  <div class="pb" id="pbody"></div>
+</aside>
+
+<script>
+// bath: true/false/null(unknown). wd: "unit"|"bldg"|"no"|null. male: true if current household all-male per listing.
+const L=[
+{id:"kb-pb",col:"nov16",pick:1,title:"Kips Bay master w/ private bath",hood:"Kips Bay · 30th & Park Ave",type:"Room in 2BR",price:2799,priceNote:"+ utilities; +$300 for 1-mo stay, +$250/mo for 2-mo",bath:true,wd:null,furn:true,min:"1–12 mo (text says 3-mo min; shorter w/ upcharge)",avail:"Nov 1, 2026",commute:8,commuteTxt:"Walk ~8 min",male:true,
+ note:"Best temporary fit: private bath, 1 male roommate, no US credit score required.",
+ more:"Posted by an LLC listed as broker. Under the FARE Act, confirm there's no broker fee. Move-in: first month + 1-month deposit + $147 cleaning fee.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/kips_bay/103203472",src:"SpareRoom"},
+{id:"kb-sh",col:"nov16",pick:3,title:"Kips Bay furnished room",hood:"Kips Bay · 30th & Park Ave",type:"Room in 3BR",price:2150,priceNote:"+ ~$140/mo utilities",bath:false,wd:null,furn:true,min:"1–12 mo (upcharge under 3 mo)",avail:"Nov 1, 2026",commute:8,commuteTxt:"Walk ~8 min",male:true,
+ note:"Cheapest close-in option. 2 male roommates, 6 train two blocks away.",
+ more:"Same advertiser and building as the private-bath room. $147 cleaning fee, 1-month deposit.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/kips_bay/103175662",src:"SpareRoom"},
+{id:"ch-nov",col:"nov16",pick:2,title:"Chelsea room + in-unit laundry, Nov 4–Jan 31",hood:"Chelsea · near 18th St & 7th Ave",type:"Room in 2BR",price:3100,priceNote:"utilities + wifi included",bath:false,wd:"unit",furn:true,min:"None, shorter OK, extension negotiable",avail:"Nov 4, 2026 → Jan 31, 2027",commute:16,commuteTxt:"Walk ~15–18 min, or F/M 14th→23rd St",male:true,
+ note:"Dates almost exactly match a Feb move. Quiet after 12am, guests until 11pm.",
+ more:"Shared bath with one roommate (a software engineer). 3rd-floor walk-up. Video tour offered. $3,100 deposit. Ask about prorating a mid-Nov start. Free SpareRoom accounts can't message for 7 days after posting.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/chelsea/103240226",src:"SpareRoom"},
+{id:"mh-35",col:"nov16",pick:4,title:"Murray Hill furnished room, E 35th St",hood:"Murray Hill · E 35th St",type:"Room in 3BR",price:2300,priceNote:"utilities not included; $1,000 deposit",bath:false,wd:null,furn:true,min:"1–6 mo",avail:"Nov 15, 2026",commute:13,commuteTxt:"Walk ~12–15 min, or 6 33rd→28th",male:false,
+ note:"Starts Nov 15 on short terms. Renovated shared bath.",
+ more:"Household listed as 2 women + 1 man, ages 25–35. Wants references.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/murray_hill/102229176",src:"SpareRoom"},
+{id:"bp",col:"nov16",pick:5,title:"Quiet doorman room, 29th & 3rd",hood:"Murray Hill / Kips Bay · 29th & 3rd",type:"Room in flex 1BR",price:2400,priceNote:"+ ~$100/mo utilities (split); $2,000 deposit",bath:false,wd:null,furn:true,min:"None, max 8 mo; prorated days considered",avail:"Nov 1, 2026",commute:8,commuteTxt:"Walk ~8 min (28th St 6 is 0–5 min away)",male:true,
+ note:"Quietest household on the board. Roommate is a 50s professional, in bed by about 9pm.",
+ more:"Luxury doorman building. Gym, pool, and roof cost extra. Applicants must pass the building background check.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/kips_bay/103236658",src:"SpareRoom"},
+{id:"jh-215",col:"nov16",pick:6,title:"June Homes #215-A, Hell's Kitchen",hood:"Hell's Kitchen · W 48th St",type:"Room in 3BR/1BA",price:2300,priceNote:"“from” price; short terms may cost more",bath:false,wd:null,furn:true,min:"1–12 mo flexible lease",avail:"Nov 14, 2026",commute:21,commuteTxt:"~20–22 min (walk 10 to 49th St, R/W to 28th St)",male:null,
+ note:"Managed operator, apply online. The commute is right at the limit.",
+ more:"June requires first month + fees + 1-month deposit within 72 hrs, plus a $20 application fee. Sister room #210-B is from $1,975 and opens Nov 10.",
+ url:"https://junehomes.com/residences/new-york-city-ny/hells-kitchen/215-midtown-west/453",src:"June Homes",url2:"https://junehomes.com/residences/new-york-city-ny/hells-kitchen/210-midtown-west/441",url2label:"#210-B ($1,975, Nov 10)"},
+{id:"roomrs",col:"nov16",pick:7,title:"Roomrs co-living, E 35th St",hood:"Murray Hill · E 35th St (Roomrs labels it Midtown)",type:"Room in 3BR/1BA",price:1912,priceTo:2427,priceNote:"“starting at”; a Leasebreak copy adds $250/mo services + $200 one-time",bath:false,wd:"unit",furn:true,min:"Conflicting: 1, 3 or 6 mo depending on site",avail:"Now (per Roomrs)",commute:16,commuteTxt:"Walk ~18 min, or 6 33rd→28th ~14 min",male:null,
+ note:"In-unit laundry at this price is rare. Confirm the minimum term and the all-in cost.",
+ more:"Several rooms across #45, #55, #65. Stays under 4 months may cost extra.",
+ url:"https://www.roomrs.com/room-rentals/nyc/manhattan/midtown/330-65",src:"Roomrs",url2:"https://www.roomrs.com/room-rentals/nyc/manhattan/midtown/326-55",url2label:"#55"},
+
+{id:"jh-529",col:"nov30",pick:1,title:"June Homes #529-A, St Marks Place",hood:"East Village · 31 St Marks Pl",type:"Room in 2BR/1BA",price:2225,priceNote:"“from” price; short terms may cost more",bath:false,wd:null,furn:true,min:"1–12 mo flexible lease",avail:"Nov 30, 2026",commute:14,commuteTxt:"~13–15 min (6 from Astor Pl, 3 stops)",male:null,
+ note:"Best managed option for Nov 30: one roommate, one-seat ride.",
+ more:"Busy nightlife street, so ask which side the bedroom faces. Dishwasher.",
+ url:"https://junehomes.com/residences/new-york-city-ny/east-village/529-east-village/1437",src:"June Homes"},
+{id:"398",col:"nov30",pick:2,title:"Entire 1BR, 398 3rd Ave",hood:"Murray Hill / Kips Bay",type:"Whole 1BR",price:3500,priceNote:"no broker fee",bath:true,wd:null,furn:null,min:"5.5 mo",avail:"Nov 20, 2026 → Apr 30, 2027",commute:7,commuteTxt:"Walk ~7 min",male:null,
+ note:"Private, at the budget cap. Runs past Feb, so it suits a later move-out.",
+ more:"Outgoing tenant. Furniture can be bought cheap or the unit taken unfurnished. Prewar, decorative fireplace, virtual tours on request.",
+ url:"https://www.leasebreak.com/short-term-rental-details/406575/398-3rd-avenue",src:"Leasebreak"},
+{id:"pah",col:"nov30",pick:3,title:"Outpost Park Avenue House",hood:"Murray Hill · E 38th St",type:"Co-living room (3–4 per apt)",price:2380,priceTo:2940,priceNote:"3–5 mo rate; plus membership (page shows $249/mo)",bath:false,wd:"bldg",furn:true,min:"3 mo",avail:"Dec 12, 2026 (earliest seen)",commute:15,commuteTxt:"Walk ~15 min, or 6 33rd→28th",male:null,
+ note:"Professional co-living. Earliest date seen is Dec 12, so ask about late Nov.",
+ more:"48% students / 52% professionals, average age 25. Free laundry in the building. Utilities managed by Outpost, \"typically $199/mo.\" Estimated all-in about $2.6k–$3.4k.",
+ url:"https://outpost.me/new-york-city/manhattan/murray-hill/465",src:"Outpost"},
+
+{id:"mh-2b2b",col:"p2",pick:1,title:"Murray Hill 2B/2B, private bath",hood:"Murray Hill · near Grand Central",type:"Room in 2BR/2BA",price:3175,priceNote:"+ electric/internet; $0 deposit",bath:true,wd:null,furn:false,min:"1-yr lease",avail:"Now (ideally before Nov 1)",commute:13,commuteTxt:"~12–15 min (6 Grand Central→28th St)",male:true,
+ note:"Closest match on the long-term side. Doorman, balcony, males preferred.",
+ more:"Roommate is in his mid-20s and works in tech/finance. No-shoes household. Bedroom unfurnished, living room furnished. May fill fast.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/murray_hill/103236385",src:"SpareRoom"},
+{id:"gc",col:"p2",pick:2,title:"Luxury building room by Grand Central",hood:"Murray Hill",type:"Room in 2BR",price:3000,priceNote:"everything included; $3,000 deposit",bath:null,wd:"bldg",furn:true,min:"12 mo",avail:"Now",commute:13,commuteTxt:"~12–15 min (6 train)",male:true,
+ note:"Exactly $3k all-in. Owners abroad about 8 months a year.",
+ more:"Rooftop pool, gym, laundry on every floor, doorman. Males preferred. Bathroom arrangement not stated, so ask. Advertiser is ID- and background-verified on SpareRoom.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/murray_hill/103205294",src:"SpareRoom"},
+{id:"hl",col:"p2",pick:3,title:"High Line 2BR/2BA, private bath",hood:"West Chelsea",type:"Room in 2BR/2BA",price:3000,priceNote:"utilities, wifi & house cleaner included",bath:true,wd:"unit",furn:true,min:"None",avail:"Now",commute:23,commuteTxt:"~22–25 min walk",male:true,
+ note:"Vegan host, quiet mature professional. Laundry in the apartment.",
+ more:"Males preferred, references required. $2,500 deposit. The commute runs a bit over 20 min.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/chelsea/102532673",src:"SpareRoom"},
+{id:"wp",col:"p2",pick:4,title:"Waterside Plaza 3B/2B, 2 rooms",hood:"Kips Bay · East River",type:"Room in 3BR/2BA",price:2150,priceNote:"approx.; utilities split 3 ways",bath:null,wd:null,furn:false,min:"12 mo",avail:"Dec 1, 2026",commute:19,commuteTxt:"~18–20 min walk, or ~10 min walk to the 23rd St 6",male:true,
+ note:"Best value for a Nov 30-ish start. 30th floor, river views.",
+ more:"Doorman, pool, gym, on-site grocery. Current tenant is a 28-year-old software engineer, in office 4 days a week. Common areas furnished, bedroom unfurnished. Free SpareRoom accounts can't message for 7 days after posting.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/kips_bay/103229738",src:"SpareRoom"},
+{id:"mtwn",col:"p2",pick:5,title:"Outpost Midtown House, private bath",hood:"Midtown East · E 57th St",type:"Co-living room (4 baths for 4)",price:2340,priceTo:2680,priceNote:"12+ mo; plus membership",bath:true,wd:null,furn:true,min:"12 mo pricing",avail:"Not shown",commute:20,commuteTxt:"~20 min (walk 8 to Lex/59th, 6 to 28th St)",male:null,
+ note:"Only managed private-bath option under $3k.",
+ more:"Mostly students (83%), average age 25. Availability not shown.",
+ url:"https://outpost.me/new-york-city/manhattan/midtown-east/686",src:"Outpost"},
+{id:"gr",col:"p2",pick:6,title:"Roomrs Gramercy duplex, E 18th St",hood:"Gramercy",type:"Room in 4BR/1.5BA",price:2477,priceNote:"“starting at” (list $2,794)",bath:false,wd:"unit",furn:true,min:"Roomrs terms (3+ mo)",avail:"Now",commute:13,commuteTxt:"Walk ~12–15 min",male:null,
+ note:"In-unit laundry and a backyard, in a walkable, quiet area.",
+ more:"Four roommates share 1.5 baths.",
+ url:"https://www.roomrs.com/room-rentals/nyc/manhattan/gramercy-park/346-B",src:"Roomrs"},
+{id:"studio",col:"p2",pick:7,title:"Solo backup: Murray Hill studio",hood:"Murray Hill · E 34th St",type:"Whole studio",price:2950,priceNote:"no broker, no fees",bath:true,wd:"no",furn:null,min:"Full term only: Nov 1, 2026 → Oct 1, 2027",avail:"Nov 1, 2026",commute:15,commuteTxt:"Walk ~15 min, or 6 33rd→28th",male:null,
+ note:"No roommate needed, under $3k.",
+ more:"Landlord-approved sublet through the landlord's portal. Virtual tours. Exposed brick, working fireplace. 5th-floor walk-up, no laundry in building. Furnished on request.",
+ url:"https://www.spareroom.com/rooms-for-rent/manhattan/murray_hill/103240085",src:"SpareRoom"}
+];
+const COLS=[
+ {k:"nov16",h:"Temporary · start by Nov 16",s:"Furnished, flexible, aimed at a move-out around Feb 1. Available on or before Nov 16."},
+ {k:"nov30",h:"Temporary · start ~Nov 30",s:"Furnished, flexible. Opens between Nov 17 and early Dec."},
+ {k:"p2",h:"Long-term · move in with roommates",s:"Standard leases, available now to early Dec."}
+];
+const $=s=>document.querySelector(s);
+const state={bath:false,wd:false,furn:false,walk:false,male:false,max:3500,sort:"pick",sel:null};
+const money=n=>"$"+n.toLocaleString("en-US");
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function tags(x){
+  const t=[];
+  t.push(x.bath===true?'<span class="tag good">Own bath</span>':x.bath===false?'<span class="tag">Shared bath</span>':'<span class="tag warn">Bath: ask</span>');
+  if(x.wd==="unit")t.push('<span class="tag good">W/D in apt</span>');else if(x.wd==="bldg")t.push('<span class="tag">Laundry in bldg</span>');else if(x.wd==="no")t.push('<span class="tag bad">No laundry</span>');
+  t.push(x.furn===true?'<span class="tag">Furnished</span>':x.furn===false?'<span class="tag">Unfurnished</span>':'<span class="tag">Furn. optional</span>');
+  t.push(`<span class="tag ${x.commute<=15?'good':x.commute<=20?'':'warn'}">${x.commute<=15?'≤15 min':'~'+x.commute+' min'}</span>`);
+  if(x.male)t.push('<span class="tag">All-male household</span>');
+  return t.join("");
+}
+function priceHTML(x){return money(x.price)+(x.priceTo?"–"+money(x.priceTo):"")+'<small>/mo</small>'}
+function pass(x){
+  if(state.bath&&x.bath!==true)return false;
+  if(state.wd&&x.wd!=="unit")return false;
+  if(state.furn&&x.furn!==true)return false;
+  if(state.walk&&x.commute>15)return false;
+  if(state.male&&!x.male)return false;
+  if(x.price>state.max)return false;
+  return true;
+}
+function render(){
+  const b=$("#board");b.innerHTML="";
+  COLS.forEach(c=>{
+    let items=L.filter(x=>x.col===c.k&&pass(x));
+    items.sort((a,z)=>state.sort==="price"?a.price-z.price:state.sort==="commute"?a.commute-z.commute:a.pick-z.pick);
+    const col=document.createElement("section");col.className="col";
+    col.innerHTML=`<h2><span>${c.h}</span><span>${items.length}</span></h2><p class="colsub">${c.s}</p><div class="cards"></div>`;
+    const cards=col.querySelector(".cards");
+    if(!items.length)cards.innerHTML='<div class="empty">No listings match these filters.</div>';
+    items.forEach(x=>{
+      const el=document.createElement("button");
+      el.className="card"+(state.sel===x.id?" sel":"");el.dataset.id=x.id;
+      el.setAttribute("aria-label","Details: "+x.title);
+      el.innerHTML=`<div class="row1"><div class="title">${x.pick===1?'<span class="star" aria-label="Top pick">★</span> ':''}${esc(x.title)}</div><div class="price">${priceHTML(x)}</div></div>
+        <div class="meta">${esc(x.hood)} · ${esc(x.type)} · ${esc(x.avail)}</div>
+        <div class="tags">${tags(x)}</div><div class="one">${esc(x.note)}</div>`;
+      el.addEventListener("click",()=>openP(x.id));
+      cards.appendChild(el);
+    });
+    b.appendChild(col);
+  });
+}
+function openP(id){
+  const x=L.find(y=>y.id===id);if(!x)return;state.sel=id;
+  $("#ptitle").textContent=x.title;
+  $("#pbody").innerHTML=`<dl>
+   <dt>Price</dt><dd><b>${priceHTML(x)}</b><br><span class="sub">${esc(x.priceNote||"")}</span></dd>
+   <dt>Neighborhood</dt><dd>${esc(x.hood)}</dd>
+   <dt>Type</dt><dd>${esc(x.type)}</dd>
+   <dt>Bathroom</dt><dd>${x.bath===true?"Private":x.bath===false?"Shared":"Not stated, so ask"}</dd>
+   <dt>Laundry</dt><dd>${x.wd==="unit"?"In unit / apartment":x.wd==="bldg"?"In building":x.wd==="no"?"None in building":"Not stated"}</dd>
+   <dt>Furnished</dt><dd>${x.furn===true?"Yes":x.furn===false?"No (bedroom)":"Optional"}</dd>
+   <dt>Term</dt><dd>${esc(x.min)}</dd>
+   <dt>Available</dt><dd>${esc(x.avail)}</dd>
+   <dt>Commute</dt><dd>${esc(x.commuteTxt)} <span class="sub">(estimate)</span></dd>
+   <dt>Household</dt><dd>${x.male?"All-male (per listing)":"Mixed or not stated"}</dd>
+  </dl>
+  <p>${esc(x.note)}</p><p class="sub">${esc(x.more||"")}</p>
+  <a class="btn" href="${x.url}" target="_blank" rel="noopener">Open on ${esc(x.src)} ↗</a>
+  ${x.url2?`<a class="btn ghost" href="${x.url2}" target="_blank" rel="noopener">${esc(x.url2label)} ↗</a>`:""}`;
+  $("#panel").classList.add("on");$("#panel").setAttribute("aria-hidden","false");
+  $("#scrim").classList.add("on");document.body.classList.add("panel-open");
+  render();$("#close").focus({preventScroll:true});
+}
+function closeP(){
+  const prev=state.sel;state.sel=null;
+  $("#panel").classList.remove("on");$("#panel").setAttribute("aria-hidden","true");
+  $("#scrim").classList.remove("on");document.body.classList.remove("panel-open");render();
+  const c=prev&&document.querySelector(`.card[data-id="${prev}"]`);if(c)c.focus({preventScroll:true});
+}
+document.querySelectorAll(".chip[data-f]").forEach(ch=>ch.addEventListener("click",()=>{
+  const f=ch.dataset.f;state[f]=!state[f];ch.setAttribute("aria-pressed",state[f]);render();}));
+$("#max").addEventListener("change",e=>{state.max=+e.target.value;render()});
+$("#sort").addEventListener("change",e=>{state.sort=e.target.value;render()});
+$("#close").addEventListener("click",closeP);$("#scrim").addEventListener("click",closeP);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&state.sel)closeP()});
+render();
+if(location.hash.length>1&&L.some(x=>x.id===location.hash.slice(1)))openP(location.hash.slice(1));
+</script>
+</body>
+</html>
